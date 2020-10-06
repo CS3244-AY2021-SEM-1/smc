@@ -1,12 +1,12 @@
 import torch.nn as nn
 from models.smc.src import network
-from models.smc.src.models import SMC
+from models.smc.src.model import SMC
 
 
 class CrowdCounter(nn.Module):
     def __init__(self):
         super(CrowdCounter, self).__init__()        
-        self.DME = SMC(vary=False)
+        self.model = SMC(vary=False)
         self.loss_fn = nn.MSELoss()
         
     @property
@@ -20,7 +20,7 @@ class CrowdCounter(nn.Module):
             is_training=self.training
         )
 
-        density_map = self.DME(im_data, vary=False)
+        density_map = self.model(im_data, vary=False)
         
         if self.training:                        
             gt_data = network.np_to_variable(

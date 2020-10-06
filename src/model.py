@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from src.network import Conv2d
+from models.smc.src.network import Conv2d
 
 class SMC(nn.Module):
     '''
@@ -8,7 +8,7 @@ class SMC(nn.Module):
     '''
 
     def __init__(self, bn=False, vary=False):
-        super(SMC self).__init__()
+        super(SMC, self).__init__()
         
         # Foreground
         self.r1 = nn.Sequential(
@@ -68,13 +68,10 @@ class SMC(nn.Module):
             Conv2d(512, 512, 3, padding=2, bn=bn, dilation=2),
             Conv2d(512, 256, 3, padding=2, bn=bn, dilation=2),
             Conv2d(256, 128, 3, padding=2, bn=bn, dilation=2),
-            Conv2d(128,  64, 3, padding=2, bn=bn, dilation=2),
-                
-            # output layer
-            Conv2d(64, 1, 1, padding='same', bn=bn)
+            Conv2d(128,  64, 3, padding=2, bn=bn, dilation=2)
         )        
 
-        self.fuse    = (
+        self.fuse = (
             nn.Sequential(Conv2d(82,  1, 1, padding='same', bn=bn)) 
             if not vary 
             else nn.Sequential(Conv2d(84,  1, 1, padding='same', bn=bn))

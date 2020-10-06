@@ -48,9 +48,13 @@ def np_to_variable(x, is_cuda=True, is_training=False, dtype=torch.FloatTensor):
     - Does preprocessing step is included here
     '''
     
-    if is_cuda: v = v.cuda()
-    
-    return Variable(torch.as_tensor(x).type(dtype))
+    if is_training:
+        v = Variable(torch.as_tensor(x).type(dtype))
+    else:
+        v = Variable(torch.as_tensor(x).type(dtype), requires_grad = False, volatile = True)
+    if is_cuda:
+        v = v.cuda()
+    return v
 
 
 def set_trainable(model, requires_grad):
@@ -65,7 +69,6 @@ def weights_normal_init(model, dev=0.01):
     else:
         for m in model.modules():
             if isinstance(m, nn.Conv2d):
-                # print torch.sum(m.weight)
                 m.weight.data.normal_(0.0, dev)
                 if m.bias is not None:
                     m.bias.data.fill_(0.0)
