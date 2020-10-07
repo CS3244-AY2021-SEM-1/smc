@@ -13,9 +13,9 @@ class SMC(nn.Module):
         # Foreground
         self.r1 = nn.Sequential(
             Conv2d(3, 16, 9, padding='same', bn=False),
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
             Conv2d(16, 32, 7, padding='same', bn=bn),
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
             Conv2d(32, 16, 7, padding='same', bn=bn),
             Conv2d(16,  8, 7, padding='same', bn=bn),
         )
@@ -24,18 +24,18 @@ class SMC(nn.Module):
         # Middleground
         self.r2_1 = nn.Sequential(
             Conv2d( 3, 20, 7, padding='same', bn=bn),
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
             Conv2d(20, 40, 5, padding='same', bn=bn),
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
             Conv2d(40, 20, 5, padding='same', bn=bn),
             Conv2d(20, 10, 5, padding='same', bn=bn)
         )
 
         self.r2_2 = nn.Sequential(
             Conv2d( 3, 24, 5, padding='same', bn=bn),
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
             Conv2d(24, 48, 3, padding='same', bn=bn),
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
             Conv2d(48, 24, 3, padding='same', bn=bn),
             Conv2d(24, 12, 3, padding='same', bn=bn)
         )
@@ -45,12 +45,12 @@ class SMC(nn.Module):
             Conv2d(  3,  64, 3, padding='same', bn=bn), 
             Conv2d( 64,  64, 3, padding='same', bn=bn),
                                      
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
                                      
             Conv2d( 64, 128, 3, padding='same', bn=bn), 
             Conv2d(128, 128, 3, padding='same', bn=bn),
                                      
-            # nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=2),
                 
             Conv2d(128, 256, 3, padding='same', bn=bn), 
             Conv2d(256, 256, 3, padding='same', bn=bn),

@@ -20,11 +20,12 @@ import h5py
 
 
 class ImageDataLoader():
-    def __init__(self, data_path, shuffle=False, pre_load=False):
+    def __init__(self, data_path, shuffle=False, pre_load=False, num_pool=None):
 
         self.data_path = data_path
         self.pre_load = pre_load
         self.shuffle = shuffle
+        self.num_pool = num_pool
         if shuffle: random.seed(2468)
 
         self.data_files = [os.path.join(data_path, filename) for filename in os.listdir(data_path)
@@ -62,6 +63,7 @@ class ImageDataLoader():
                 random.shuffle(self.data_files)
         files = self.data_files
         id_list = self.id_list
+        num_pool = self.num_pool
 
         for idx in id_list:
             if self.pre_load:
@@ -75,11 +77,22 @@ class ImageDataLoader():
                 img = f['image'][()]
                 den = f['density'][()]
 
-                blob['data'] = img.reshape(1, 3, img.shape[0], img.shape[1])
-                blob['gt_density'] = den.reshape(1, 1, den.shape[0], den.shape[1])
+                # target shape
+                target_shape = (720, 1280)
+                divide = 2**num_pool
+                gt_target_shape = (720//divide, 1280//divide)
+
+                # resizing with cv2
+                img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_CUBIC)
+                gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_CUBIC)
+
+                blob['data'] = img_resized.reshape(1, 3, target_shape[0], target_shape[1])
+                blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1])
+
                 self.blob_list[idx] = blob
 
             yield blob
 
     def get_num_samples(self):
         return self.num_samples
+
