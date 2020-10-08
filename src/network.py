@@ -40,7 +40,6 @@ def load_net(fname, net, dtype=torch.FloatTensor):
     h5f = h5py.File(fname, mode='r')
     for k, v in net.state_dict().items():
         param = torch.from_numpy(np.asarray(h5f[k])).type(dtype)
-        print(param.type)
         v.copy_(param)
 
 

@@ -13,7 +13,7 @@ class CrowdCounter(nn.Module):
     @property
     def loss(self):
         return self.loss_mse
-    
+
     def forward(self, im_data, gt_data=None):        
         im_data = network.np_to_variable(
             im_data, 
@@ -22,6 +22,8 @@ class CrowdCounter(nn.Module):
         )
 
         density_map = self.model(im_data)
+#         print(f'Density map size: {density_map.shape}. Density map type: {density_map.dtype}')
+
         
         if self.training:                        
             gt_data = network.np_to_variable(
@@ -29,6 +31,7 @@ class CrowdCounter(nn.Module):
                 is_cuda=self.is_cuda, 
                 is_training=self.training
             )
+#             print(f'Ground Truth Map Size: {gt_data.shape}. Ground truth map type: {gt_data.dtype}')
             self.loss_mse = self.build_loss(density_map, gt_data)
             
         return density_map

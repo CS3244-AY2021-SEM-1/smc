@@ -29,7 +29,7 @@ class ImageDataLoader():
         if shuffle: random.seed(2468)
 
         self.data_files = [os.path.join(data_path, filename) for filename in os.listdir(data_path)
-                           if os.path.isfile(os.path.join(data_path, filename))][0:1]
+                           if os.path.isfile(os.path.join(data_path, filename))]
 
         self.num_samples = len(self.data_files)
         self.blob_list = {}
