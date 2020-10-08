@@ -1,11 +1,13 @@
+import torch
 from models.smc.src.crowd_count import CrowdCounter
 from models.smc.src import network
 import numpy as np
 
 
-def evaluate_model(trained_model, data_loader):
+def evaluate_model(trained_model, data_loader, is_cuda=False):
+    dtype = torch.FloatTensor if not is_cuda else torch.cuda.FloatTensor
     net = CrowdCounter()
-    network.load_net(trained_model, net)
+    network.load_net(trained_model, net, dtype=dtype)
     net.eval()
     mae = 0.0
     mse = 0.0
