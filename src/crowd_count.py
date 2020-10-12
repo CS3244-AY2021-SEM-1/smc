@@ -39,3 +39,6 @@ class CrowdCounter(nn.Module):
     def build_loss(self, density_map, gt_data):
         loss = self.loss_fn(density_map, gt_data)
         return loss
+    
+    def get_model(self):
+        return self.model

@@ -6,8 +6,10 @@ import numpy as np
 
 def evaluate_model(trained_model, data_loader, is_cuda=False):
     dtype = torch.FloatTensor if not is_cuda else torch.cuda.FloatTensor
-    net = CrowdCounter()
+    net = CrowdCounter(is_cuda=is_cuda)
     network.load_net(trained_model, net, dtype=dtype)
+    if is_cuda:
+        net.cuda()
     net.eval()
     mae = 0.0
     mse = 0.0
