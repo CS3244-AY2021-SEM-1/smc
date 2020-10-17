@@ -17,6 +17,7 @@ import os
 import random
 import pandas as pd
 import h5py
+import ast
 
 
 class ImageDataLoader():
@@ -29,7 +30,7 @@ class ImageDataLoader():
         if shuffle: random.seed(2468)
 
         self.data_files = [os.path.join(data_path, filename) for filename in os.listdir(data_path)
-                           if os.path.isfile(os.path.join(data_path, filename))][0:100]
+                           if os.path.isfile(os.path.join(data_path, filename))][0:300]
 
         self.num_samples = len(self.data_files)
         self.blob_list = {}
@@ -48,7 +49,8 @@ class ImageDataLoader():
 
                 img = f['image'][()]
                 den = f['density'][()]
-
+                metadata = f['metadata'][()]
+                
                 # resizing with cv2
                 img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_CUBIC)
                 gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_CUBIC)
@@ -59,7 +61,8 @@ class ImageDataLoader():
 
                 blob['data'] = img.reshape((1, 3, img.shape[0], img.shape[1]))
                 blob['gt_density'] = den.reshape((1, 1, den.shape[0], den.shape[1]))
-
+                blob['metadata'] = ast.literal_eval(metadata)
+                
                 self.blob_list[idx] = blob
 
                 idx += 1
@@ -89,6 +92,7 @@ class ImageDataLoader():
 
                 img = f['image'][()]
                 den = f['density'][()]
+                metadata = f['metadata'][()]
 
                 # target shape
                 target_shape = (720, 1280)
@@ -96,8 +100,8 @@ class ImageDataLoader():
                 gt_target_shape = (720//divide, 1280//divide)
 
                 # resizing with cv2
-                img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_CUBIC)
-                gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_CUBIC)
+                img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_LINEAR)
+                gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_LINEAR)
 
                 # if BW, skip
                 if img_resized.shape == (target_shape[1], target_shape[0]): continue
@@ -105,8 +109,9 @@ class ImageDataLoader():
                     
                     
                 blob['data'] = img_resized.reshape(1, 3, target_shape[0], target_shape[1])
-                blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1])
-
+                blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1]) * (4**num_pool)
+                blob['metadata'] = ast.literal_eval(metadata)
+                
                 self.blob_list[idx] = blob
 
             yield blob
