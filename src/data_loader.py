@@ -21,7 +21,7 @@ import ast
 
 
 class ImageDataLoader():
-    def __init__(self, data_path, shuffle=False, pre_load=False, num_pool=None):
+    def __init__(self, data_path, shuffle=False, pre_load=False, num_pool=None, size=300):
 
         self.data_path = data_path
         self.pre_load = pre_load
@@ -30,7 +30,7 @@ class ImageDataLoader():
         if shuffle: random.seed(2468)
 
         self.data_files = [os.path.join(data_path, filename) for filename in os.listdir(data_path)
-                           if os.path.isfile(os.path.join(data_path, filename))][0:300]
+                           if os.path.isfile(os.path.join(data_path, filename))][0:size]
 
         self.num_samples = len(self.data_files)
         self.blob_list = {}
@@ -119,13 +119,14 @@ class ImageDataLoader():
     def get_num_samples(self):
         return self.num_samples
     
-    def get_dummy_input(self, num_pool=2):
-        fname = self.data_files[0]
+    def get_test_input(self, num_pool=2, index=0):
+        fname = self.data_files[index]
         blob = {}
         f = h5py.File(fname, "r")
 
         img = f['image'][()]
         den = f['density'][()]
+        metadata = f['metadata'][()]
 
         # target shape
         target_shape = (720, 1280)
@@ -137,7 +138,8 @@ class ImageDataLoader():
         gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_CUBIC)
 
         blob['data'] = img_resized.reshape(1, 3, target_shape[0], target_shape[1])
-        blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1])
+        blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1]) * (4**num_pool)
+        blob['metadata'] = ast.literal_eval(metadata)
         
         return blob
 

@@ -1,13 +1,14 @@
 import torch.nn as nn
+import torch
 from models.smc.src import network
 from models.smc.src.model import SMC
-
+import numpy as np
 
 class CrowdCounter(nn.Module):
     def __init__(self, is_cuda=False):
         super(CrowdCounter, self).__init__()        
         self.model = SMC(vary=False)
-        self.criterion = nn.SmoothL1Loss()        
+        self.criterion = nn.MSELoss(size_average=False).cuda()    
         self.is_cuda=is_cuda
         
     @property
@@ -23,22 +24,16 @@ class CrowdCounter(nn.Module):
 
         # generating density map + upsampling to match the gt_data shape
         density_map = self.model(im_data)
-        density_map = nn.functional.interpolate(
-            density_map, 
-            (gt_data.shape[2], gt_data.shape[3]), 
-            mode='bilinear',
-            align_corners=True
-        )
         
         
-        if self.training:                        
+        if self.training:
             gt_data = network.np_to_variable(
                 gt_data, 
                 is_cuda=self.is_cuda, 
                 is_training=self.training
             )
 
-            self.loss_value = self.build_loss(density_map, gt_data)            
+            self.loss_value = self.build_loss(density_map, gt_data)
     
         return density_map
     
