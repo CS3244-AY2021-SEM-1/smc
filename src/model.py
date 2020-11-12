@@ -70,18 +70,46 @@ class SMC(nn.Module):
             Conv2d(128,  64, 3, padding=2, bn=bn, dilation=2)
         )        
 
-        self.fuse = (
-            nn.Sequential(Conv2d(82,  1, 1, padding='same', bn=bn)) 
-            if not vary 
-            else nn.Sequential(Conv2d(84,  1, 1, padding='same', bn=bn))
-        )
+        #self.fuse = (
+        #    nn.Sequential(Conv2d(82,  1, 1, padding='same', bn=bn)) 
+        #    if not vary 
+        #    else nn.Sequential(Conv2d(84,  1, 1, padding='same', bn=bn))
+        #)
+        
+        self.fuse1 = nn.Sequential(Conv2d(8, 1, 1, padding='same', bn=bn))
+        self.fuse2 = nn.Sequential(Conv2d(10, 1, 1, padding='same', bn=bn))
+        self.fuse3 = nn.Sequential(Conv2d(64, 1, 1, padding='same', bn=bn))
+        
+        self.final = nn.Sequential(Conv2d(1, 1, 1, padding='same', bn=bn))
 
 
     def forward(self, im_data, vary=False):
-        r1 = self.r1(im_data)
-        r2 = self.r2_1(im_data) if not vary else self.r2_2(im_data)
-        r3 = self.r3(im_data)
-        x = torch.cat((r1, r2, r3), 1)
-        x = self.fuse(x)
-        return x
+        
+        # original shape: 1 x 3 x H x W
+        
+        # permuting to get to (1 x H x W x 3)
+        permuted = im_data[0].permute(1,2,0)
+        
+        H = permuted.shape[0]
+        top = permuted[:int(H/3)].permute(2,0,1).unsqueeze(0)
+        mid = permuted[int(H/3):2*int(H/3)].permute(2,0,1).unsqueeze(0)
+        btm = permuted[2*int(H/3):3*int(H/3)].permute(2,0,1).unsqueeze(0)
+        
+        r1 = self.r1(top)
+        r2 = self.r2_1(mid)
+        r3 = self.r3(btm)
+        
+        # joining back
+        #tensor_list = [r1, r2, r3]
+        #stacked_tensor = torch.stack(tensor_list).unsqueeze(0)        
+        #print(stacked_tensor.shape)
+        
+        out1 = self.fuse1(r1)[0][0]
+        out2 = self.fuse2(r2)[0][0]
+        out3 = self.fuse3(r3)[0][0]
+        
+        #x = torch.cat((r1, r2, r3),1)
+        #x = self.fuse(x)
+        x = torch.cat((out1, out2, out3), 0).unsqueeze(0).unsqueeze(0)
+        return x #self.final(x)
 

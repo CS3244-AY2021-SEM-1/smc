@@ -18,6 +18,7 @@ import random
 import pandas as pd
 import h5py
 import ast
+import torch
 
 
 class ImageDataLoader():
@@ -47,20 +48,15 @@ class ImageDataLoader():
                 divide = 2**num_pool
                 gt_target_shape = (720//divide, 1280//divide)
 
-                img = f['image'][()]
-                den = f['density'][()]
+                # if BW, skip
+                if len(torch.as_tensor(f['image'][()]).shape) == 2: continue
+
+                img = torch.as_tensor(f['image'][()]).permute(2,0,1).unsqueeze(0)
+                den = torch.as_tensor(f['density'][()]).unsqueeze(0).unsqueeze(0)
                 metadata = f['metadata'][()]
                 
-                # resizing with cv2
-                img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_CUBIC)
-                gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_CUBIC)
-
-                # if BW, skip
-                if img_resized.shape == (target_shape[1], target_shape[0]): continue
-                if len(img_resized.shape) == 2: continue
-
-                blob['data'] = img.reshape((1, 3, img.shape[0], img.shape[1]))
-                blob['gt_density'] = den.reshape((1, 1, den.shape[0], den.shape[1]))
+                blob['data'] = img
+                blob['gt_density'] = den
                 blob['metadata'] = ast.literal_eval(metadata)
                 
                 self.blob_list[idx] = blob
@@ -89,27 +85,16 @@ class ImageDataLoader():
                 fname = files[idx]
                 blob = {}
                 f = h5py.File(fname, "r")
-
-                img = f['image'][()]
-                den = f['density'][()]
-                metadata = f['metadata'][()]
-
-                # target shape
-                target_shape = (720, 1280)
-                divide = 2**num_pool
-                gt_target_shape = (720//divide, 1280//divide)
-
-                # resizing with cv2
-                img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_LINEAR)
-                gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_LINEAR)
-
+                
                 # if BW, skip
-                if img_resized.shape == (target_shape[1], target_shape[0]): continue
-                if len(img_resized.shape) == 2: continue
+                if len(torch.as_tensor(f['image'][()]).shape) == 2: continue
                     
+                img = torch.as_tensor(f['image'][()]).permute(2,0,1).unsqueeze(0)
+                den = torch.as_tensor(f['density'][()]).unsqueeze(0).unsqueeze(0)
+                metadata = f['metadata'][()]                    
                     
-                blob['data'] = img_resized.reshape(1, 3, target_shape[0], target_shape[1])
-                blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1]) * (4**num_pool)
+                blob['data'] = img
+                blob['gt_density'] = den
                 blob['metadata'] = ast.literal_eval(metadata)
                 
                 self.blob_list[idx] = blob
@@ -124,21 +109,12 @@ class ImageDataLoader():
         blob = {}
         f = h5py.File(fname, "r")
 
-        img = f['image'][()]
-        den = f['density'][()]
+        img = torch.as_tensor(f['image'][()]).permute(2,0,1).unsqueeze(0)
+        den = torch.as_tensor(f['density'][()]).unsqueeze(0).unsqueeze(0)
         metadata = f['metadata'][()]
 
-        # target shape
-        target_shape = (720, 1280)
-        divide = 2**num_pool
-        gt_target_shape = (720//divide, 1280//divide)
-
-        # resizing with cv2
-        img_resized = cv2.resize(img, target_shape, interpolation = cv2.INTER_CUBIC)
-        gt_resized = cv2.resize(den, gt_target_shape, interpolation = cv2.INTER_CUBIC)
-
-        blob['data'] = img_resized.reshape(1, 3, target_shape[0], target_shape[1])
-        blob['gt_density'] = gt_resized.reshape(1, 1, gt_target_shape[0], gt_target_shape[1]) * (4**num_pool)
+        blob['data'] = img
+        blob['gt_density'] = den
         blob['metadata'] = ast.literal_eval(metadata)
         
         return blob

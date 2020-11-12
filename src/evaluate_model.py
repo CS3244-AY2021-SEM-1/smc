@@ -61,9 +61,9 @@ def evaluate_model(trained_model, data_loader, is_cuda=False):
             weather = metadata['weather']
 
             density_map = net(im_data, gt_data)
-            density_map = density_map.data.cpu().numpy()
-            gt_count = np.sum(gt_data)
-            et_count = np.sum(density_map)
+            density_map = density_map.data.cpu()
+            gt_count = torch.sum(gt_data)
+            et_count = torch.sum(density_map)
 
             # updating the values
             MAEcrowddensity[crowd_density] += abs(gt_count-et_count)
